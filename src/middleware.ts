@@ -12,6 +12,7 @@ export function middleware(request: NextRequest) {
       ip: request.ip,
       geo: request.geo,
       url: request.nextUrl.pathname,
+      clientIp: request.headers.get("x-forwarded-for"),
     };
     console.log(JSON.stringify(log, (k, v) => (v === undefined ? null : v)));
   }
