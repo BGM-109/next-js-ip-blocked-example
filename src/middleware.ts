@@ -5,20 +5,29 @@ import {
   NextResponse,
 } from "next/server";
 
+type MiddlewareFactory = (middleware: NextMiddleware) => NextMiddleware;
+
+function chainMiddlewares(
+  functions: MiddlewareFactory[] = [],
+  index = 0
+): NextMiddleware {
+  const current = functions[index];
+  if (current) {
+    const next = chainMiddlewares(functions, index + 1);
+    return current(next);
+  }
+  return () => NextResponse.next();
+}
+
 function withLogging(middleware: NextMiddleware) {
   return (request: NextRequest, event: NextFetchEvent) => {
-    if (
-      request.nextUrl.pathname.match(/\/(?!.*\..*|_next).*/) ||
-      request.nextUrl.pathname.match(/\/(api|trpc)(.*)/)
-    ) {
-      const log = {
-        ip: request.ip,
-        geo: request.geo,
-        url: request.nextUrl.pathname,
-        clientIp: request.headers.get("x-forwarded-for"),
-      };
-      console.log(JSON.stringify(log, (k, v) => (v === undefined ? null : v)));
-    }
+    const log = {
+      ip: request.ip,
+      geo: request.geo,
+      url: request.nextUrl.pathname,
+      clientIp: request.headers.get("x-forwarded-for"),
+    };
+    console.log(JSON.stringify(log, (k, v) => (v === undefined ? null : v)));
     return middleware(request, event);
   };
 }
@@ -50,4 +59,8 @@ function iPRestrict(middleware: NextMiddleware) {
   };
 }
 
-export default withLogging(iPRestrict(() => NextResponse.next()));
+export const config = {
+  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/(api|trpc)(.*)"],
+};
+
+export default chainMiddlewares([withLogging, iPRestrict]);
