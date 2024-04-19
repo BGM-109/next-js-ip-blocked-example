@@ -22,6 +22,10 @@ export function middleware(request: NextRequest) {
       return item.trim();
     })
   );
+  const iplog = {
+    message: `ipWhiteList: ${ipWhiteList}`,
+  };
+  console.log(iplog);
 
   if (request.ip && !ipWhiteList.has(request.ip as string)) {
     const log = {
