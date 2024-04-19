@@ -6,7 +6,7 @@ export function middleware(request: NextRequest) {
   if (
     request.nextUrl.pathname.match(/\/(?!.*\..*|_next).*/) ||
     request.nextUrl.pathname.match(/\/(api|trpc)(.*)/) ||
-    request.nextUrl.pathname === "/"
+    request.nextUrl.pathname === "/blocked"
   ) {
     const log = {
       ip: request.ip,
