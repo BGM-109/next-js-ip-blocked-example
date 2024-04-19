@@ -7,6 +7,9 @@ import {
 
 type MiddlewareFactory = (middleware: NextMiddleware) => NextMiddleware;
 
+/**
+ * 여러개의 미들웨어 함수를 연결해주는 함수 입니다.
+ */
 function chainMiddlewares(
   functions: MiddlewareFactory[] = [],
   index = 0
@@ -19,6 +22,9 @@ function chainMiddlewares(
   return () => NextResponse.next();
 }
 
+/**
+ * 로그를 볼 수 있습니다.
+ */
 function withLogging(middleware: NextMiddleware) {
   return (request: NextRequest, event: NextFetchEvent) => {
     const log = {
@@ -32,10 +38,14 @@ function withLogging(middleware: NextMiddleware) {
   };
 }
 
+/**
+ * 아이피 제한을 걸어주는 미들웨어 함수 입니다.
+ */
 function iPRestrict(middleware: NextMiddleware) {
   return (request: NextRequest, event: NextFetchEvent) => {
-    // blcoked 페이지에서만 아이피 제한이 실행됩니다.
-    if (request.nextUrl.pathname === "/blocked") {
+    const blockRoutes = new Set(["/blocked"]);
+    const { pathname } = request.nextUrl;
+    if (blockRoutes.has(pathname)) {
       const whitelist: string = process.env.WHITELIST || "";
       const ipWhiteList = new Set(
         whitelist?.split(",").map((item: string) => {
@@ -59,6 +69,9 @@ function iPRestrict(middleware: NextMiddleware) {
   };
 }
 
+/**
+ * 미들웨어가 전역에서 실행될 수 있도록 설정합니다.
+ */
 export const config = {
   matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/(api|trpc)(.*)"],
 };
